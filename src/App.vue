@@ -1,86 +1,76 @@
 <template>
 <div class="page">
-      <main class="main">
-        <div class="container">
-          <div class="laptop">
-            <div class="sections">
-              <section class="section section-left">
-                <div class="info">
-                  <div class="city-inner">
-                    <input type="text" class="search">
-                  </div>
-                  <WeatherSummary />
-                </div>
-              </section>
-              <section class="section section-right">
-                <Highlights />
-              </section> 
+  <main class="main">
+    <div class="container">
+      <div class="laptop">
+        <div class="sections">
+          <section :class="['section', 'section-left', {'section-error': isError}]">
+            <div class="info">
+              <div class="city-inner">
+                <input v-model="city" type="text" class="search" placeholder="Enter your city" @keyup.enter="getWeather()">
+                <div class="city-inner-after" @click="getWeather()"></div>
+                <p class="error">{{ error }}</p>
+              </div>
+              <WeatherSummary :weatherInfo="weatherInfo" />
             </div>
-            <div class="sections">
-              <section class="section-bottom">
-                <div
-                  class="block-bottom"
-                >
-                  <div class="block-bottom-inner">
-                    <div class="block-bottom-pic pic-coords"></div>
-                    <div class="block-bottom-texts">
-                      <div class="block-bottom-text-block">
-                        <div class="block-bottom-text-block-title">
-                          Longitude: 2.3488
-                        </div>
-                        <div class="block-bottom-text-block-desc">
-                          Longitude measures distance east or west of the prime meridian.
-                        </div>
-                      </div>
-                      <div class="block-bottom-text-block">
-                        <div class="block-bottom-text-block-title">
-                          Latitude: 48.8534
-                        </div>
-                        <div class="block-bottom-text-block-desc">
-                          Latitude lines start at the equator (0 degrees latitude) and run east and west, parallel to the equator. 
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-              <section class="section-bottom">
-                <div
-                  class="block-bottom"
-                >
-                  <div class="block-bottom-inner">
-                    <div class="block-bottom-pic pic-humidity"></div>
-                    <div class="block-bottom-texts">
-                      <div class="block-bottom-text-block">
-                        <div class="block-bottom-text-block-title">
-                          Humidity: 60 %
-                        </div>
-                        <div class="block-bottom-text-block-desc">
-                          Humidity is the concentration of water vapor present in the air. Water vapor, the gaseous state of water, is generally invisible to the human eye.
-                          <br /><br />
-                          The same amount of water vapor results in higher relative humidity in cool air than warm air.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </div>
-          </div>
+          </section>
+          <section class="section section-right">
+            <Highlights :weatherInfo="weatherInfo"/>
+          </section> 
         </div>
-      </main>
+        <div class="sections" v-if="weatherInfo?.weather">
+          <Coords :coord="weatherInfo.coord"/>
+          <Humidity :humidity="weatherInfo.main.humidity"  />
+        </div>
+      </div>
     </div>
+  </main>
+</div>
 </template>
 
 <script>
 import WeatherSummary from '@/components/WeatherSummary.vue';
 import Highlights from '@/components/Highlights.vue';
+import { API_KEY, BASE_URL } from './constants';
+import Coords from '@/components/Coords.vue';
+import Humidity from '@/components/Humidity.vue';
 
 export default {
   name: 'App',
+  data() {
+    return {
+      city: '',
+      weatherInfo: null,
+      error: '',
+      isError: true,
+    }
+  },
   components: {
     WeatherSummary,
     Highlights,
+    Coords,
+    Humidity,
+  },
+  methods: {
+    getWeather() {
+      if (this.city.trim().length < 2) {
+        this.error = "Enter the correct city name"
+        return false
+      }
+      else {
+        this.error = ""
+        fetch(`${BASE_URL}?q=${this.city}&units=metric&appid=${API_KEY}`)
+          .then((response) => response.json())
+          .then((data) => this.weatherInfo = data)
+      }
+    }
+  },
+  computed: {
+    isErrorCheck() {
+      if (this.weatherInfo.value?.cod !== 200) {
+        return this.isError = false
+      } 
+    }
   }
 }
 </script>
@@ -115,12 +105,28 @@ export default {
   width: 70%;
   padding-left: 10px;
 }
+.section-error {
+  min-width: 235px;
+  padding-right: 0;
+}
 .city-inner {
   position: relative;
   display: inline-block;
   width: 100%;
 }
-.city-inner::after {
+// .city-inner::after {
+//   content: '';
+//   position: absolute;
+//   top: 0;
+//   right: 10px;
+//   width: 25px;
+//   height: 25px;
+//   background: url("../src/assets/img/search.svg") no-repeat 50% 50%;
+//   background-size: contain;
+//   transform: translateY(50%);
+//   cursor: pointer;
+// }
+.city-inner-after {
   content: '';
   position: absolute;
   top: 0;
@@ -131,6 +137,11 @@ export default {
   background-size: contain;
   transform: translateY(50%);
   cursor: pointer;
+}
+.error {
+  color: rgb(201, 41, 41);
+  text-align: center;
+  margin: 5px;
 }
 .info {
   height: 100%;

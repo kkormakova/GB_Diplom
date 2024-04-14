@@ -1,5 +1,5 @@
 <template>
-    <div class="section highlights">
+    <div class="section highlights" v-if="weatherInfo?.weather">
         <div class="title">Today's Highlights</div>
         <div class="highlights-wrapper">
             <div class="highlight">
@@ -9,11 +9,11 @@
                     <div class="card-info">
                         <div class="card-justify">
                             <div class="info-main">
-                                <div class="info-main-num">3.6</div>
+                                <div class="info-main-num">{{ weatherInfo?.wind?.speed }}</div>
                                 <div class="info-main-text">m/s</div>
                             </div> 
                             <div class="info-main">
-                                <div class="info-main-num">350</div>
+                                <div class="info-main-num">{{ weatherInfo?.wind?.deg }}</div>
                                 <div class="info-main-text">deg</div>
                             </div>
                         </div>
@@ -22,8 +22,8 @@
                 <div class="card-small">
                     <div class="card-small-title">Wind gusts</div>
                     <div class="card-small-info">
-                        <div class="card-small-data">
-                            <div class="info-main-num">8.4</div>
+                        <div class="card-small-data" v-if="weatherInfo?.wind?.gust">
+                            <div class="info-main-num">{{ Math.round(weatherInfo?.wind?.gust) }}</div>
                             <div class="info-main-text">m/s</div>
                         </div>
                         <div class="card-small-hint">
@@ -42,7 +42,7 @@
                     <div class="card-info">
                         <div class="card-centered">
                             <div class="info-main">
-                                <div class="info-main-num">765</div>
+                                <div class="info-main-num">{{ Math.round(weatherInfo?.main?.pressure * 0.750062) }}</div>
                                 <div class="info-main-text">mm</div>
                             </div> 
                         </div> 
@@ -52,7 +52,7 @@
                     <div class="card-small-title">Feels like</div>
                     <div class="card-small-info">
                         <div class="card-small-data">
-                            <div class="info-main-num">21</div>
+                            <div class="info-main-num">{{ Math.round(weatherInfo?.main?.feels_like) }}</div>
                             <div class="info-main-text">°C</div>
                         </div>
                         <div class="card-small-hint">
@@ -71,12 +71,12 @@
                             <div class="state">
                                 <div class="state-pic"></div>
                                 <div class="state-title">Sunrise</div>
-                                <div class="state-time">07:31:42</div>
+                                <div class="state-time">{{ sunriseTime }}</div>
                             </div>
                             <div class="state">
                                 <div class="state-pic state-pic--flipped"></div>
                                 <div class="state-title">Sunset</div>
-                                <div class="state-time">18:34:19</div>
+                                <div class="state-time">{{ sunsetTime }}</div>
                             </div>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                     <div class="card-small-title">Cloudiness</div>
                     <div class="card-small-info">
                         <div class="card-small-data">
-                            <div class="info-main-num">80</div>
+                            <div class="info-main-num">{{ weatherInfo?.clouds?.all }}</div>
                             <div class="info-main-text">%</div>
                         </div>
                         <div class="card-small-hint">
@@ -99,10 +99,49 @@
     </div>
 </template>
 
-<script>
+<!-- <script>
     export default {
-        
+        props: {
+            weatherInfo: [ Object, null],
+        },
+        // data() {
+        //     return {
+        //         sunrise: computed(()=> this.weatherInfo.sys.sunrise),
+        //     }
+        // },
+        // computed: {
+        //     getTime(seconds) {
+        //         return new Date(seconds * 1000).toLocaleTimeString('ru-RU')
+        //     }
+        //     getTimeSunrise() {
+        //         return this.getTime(weatherInfo.sys.sunrise)
+        //     }
+        // }
     }
+</script> -->
+<script setup>
+import { computed } from "vue";
+
+const props = defineProps({
+    weatherInfo: {
+        type: [Object, null],
+        required: true,
+    },
+});
+
+const getTime = (seconds) => {
+  return new Date(seconds * 1000).toLocaleTimeString('ru-RU', { timeZone: 'Atlantic/Reykjavik' })
+}
+
+const timezone = computed(() => props.weatherInfo?.timezone);
+
+const sunriseTime = computed(() => {
+    return getTime(props.weatherInfo?.sys?.sunrise + timezone.value);
+});
+
+const sunsetTime = computed(() => {
+    return getTime(props.weatherInfo?.sys?.sunset + timezone.value);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -238,15 +277,15 @@
     height: 16px;
     margin-bottom: 3px;
 }
-// .card-small-pic--wind {
-//     background-image: url("../assets/img/gusts.svg");
-// }
-// .card-small-pic--pressure {
-//     background-image: url("../assets/img/humidity.svg");
-// }
-// .card-small-pic--sun {
-//     background-image: url("../assets/img/cloud.svg");
-// }
+.card-small-pic--wind {
+    background-image: url("../assets/img/gusts.svg");
+}
+.card-small-pic--pressure {
+    background-image: url("../assets/img/humidity.svg");
+}
+.card-small-pic--sun {
+    background-image: url("../assets/img/cloud.svg");
+}
 .card-small-data {
     display: flex;
     align-items: flex-end;

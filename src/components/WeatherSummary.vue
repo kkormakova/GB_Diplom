@@ -1,18 +1,31 @@
 <template>
-    <div class="summary">
-        <div style="background-image: url('../assets/img/weather-main/thunderstorm.png');" class="pic-main"></div>
-        <div class="weather">
-            <div class="temp">14 °C</div>
-            <div class="weather-desc text-block">Thunderstorm</div>
+    <div  v-if="weatherInfo?.weather.length" class="summary">
+        <div class="pic-main" :style="`background-image: url('/weather-main/${weatherInfo?.weather[0].description}.png');`">
         </div>
-        <div class="city text-block">Paris, FR</div>
-        <div class="date text-block">Thu, March 16, 2023</div>
+        <div class="weather">
+            <div class="temp">{{ Math.round(weatherInfo?.main?.temp) }} °C</div>
+            <div class="weather-desc text-block"> {{ weatherInfo?.weather[0].description[0].toUpperCase() + weatherInfo?.weather[0].description.slice(1) }}</div>
+        </div>
+        <div class="city text-block">{{ weatherInfo?.name }}, {{ weatherInfo?.sys?.country }}</div>
+        <div class="date text-block">{{ localeDate }}</div>
     </div>
 </template>
 
 <script>
     export default {
-        
+        props: {
+            weatherInfo: [Object, null],
+        },
+        data() {
+            return {
+                date: new Date(),
+            }
+        },
+        computed: {
+            localeDate() {
+                return (new Date(this.date)).toLocaleDateString('en-EN', {weekday: 'short', year: 'numeric', month: 'long', day: 'numeric'})
+            },
+        }
     }
 </script>
 
@@ -23,7 +36,6 @@
     width: 60px;
     height: 60px;
     margin: 20px 0 12px;
-    background-image: url("../assets/img/weather-main/thunderstorm.png");
     background-repeat: no-repeat;
     background-position: 50% 50%;
     background-size: contain;
