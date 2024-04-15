@@ -9,16 +9,21 @@
               <div class="city-inner">
                 <input v-model="city" type="text" class="search" placeholder="Enter your city" @keyup.enter="getWeather()">
                 <div class="city-inner-after" @click="getWeather()"></div>
-                <p class="error">{{ error }}</p>
               </div>
-              <WeatherSummary :weatherInfo="weatherInfo" />
+              <WeatherSummary :weatherInfo="weatherInfo" v-if="!isError" />
+              <div class="error" v-else>
+                <div class="error-title">Oooops! Something went wrong</div>
+                <div class="error-message" v-if="weatherInfo?.message">
+                  {{ weatherInfo?.message[0].toUpperCase() + weatherInfo?.message.slice(1) }}
+                </div>
+              </div>
             </div>
           </section>
-          <section class="section section-right">
+          <section class="section section-right" v-if="!isError">
             <Highlights :weatherInfo="weatherInfo"/>
           </section> 
         </div>
-        <div class="sections" v-if="weatherInfo?.weather">
+        <div class="sections" v-if="!isError">
           <Coords :coord="weatherInfo.coord"/>
           <Humidity :humidity="weatherInfo.main.humidity"  />
         </div>
@@ -28,51 +33,24 @@
 </div>
 </template>
 
-<script>
-import WeatherSummary from '@/components/WeatherSummary.vue';
-import Highlights from '@/components/Highlights.vue';
-import { API_KEY, BASE_URL } from './constants';
-import Coords from '@/components/Coords.vue';
-import Humidity from '@/components/Humidity.vue';
+<script setup>
+import { ref, computed } from "vue";
+import { API_KEY, BASE_URL } from "./constants";
+import WeatherSummary from "./components/WeatherSummary.vue";
+import Highlights from "./components/Highlights.vue";
+import Coords from "./components/Coords.vue";
+import Humidity from "./components/Humidity.vue";
 
-export default {
-  name: 'App',
-  data() {
-    return {
-      city: '',
-      weatherInfo: null,
-      error: '',
-      isError: true,
-    }
-  },
-  components: {
-    WeatherSummary,
-    Highlights,
-    Coords,
-    Humidity,
-  },
-  methods: {
-    getWeather() {
-      if (this.city.trim().length < 2) {
-        this.error = "Enter the correct city name"
-        return false
-      }
-      else {
-        this.error = ""
-        fetch(`${BASE_URL}?q=${this.city}&units=metric&appid=${API_KEY}`)
-          .then((response) => response.json())
-          .then((data) => this.weatherInfo = data)
-      }
-    }
-  },
-  computed: {
-    isErrorCheck() {
-      if (this.weatherInfo.value?.cod !== 200) {
-        return this.isError = false
-      } 
-    }
-  }
+const city = ref("Moscow");
+const weatherInfo = ref(null);
+const isError = computed(() => weatherInfo.value?.cod !== 200);
+
+function getWeather() {
+  fetch(`${BASE_URL}?q=${city.value}&units=metric&appid=${API_KEY}`)
+    .then((response) => response.json())
+    .then((data) => (weatherInfo.value = data));
 }
+getWeather();
 </script>
 
 <style lang="scss">
@@ -106,7 +84,7 @@ export default {
   padding-left: 10px;
 }
 .section-error {
-  min-width: 235px;
+  min-width: 285px;
   padding-right: 0;
 }
 .city-inner {
@@ -114,18 +92,6 @@ export default {
   display: inline-block;
   width: 100%;
 }
-// .city-inner::after {
-//   content: '';
-//   position: absolute;
-//   top: 0;
-//   right: 10px;
-//   width: 25px;
-//   height: 25px;
-//   background: url("../src/assets/img/search.svg") no-repeat 50% 50%;
-//   background-size: contain;
-//   transform: translateY(50%);
-//   cursor: pointer;
-// }
 .city-inner-after {
   content: '';
   position: absolute;
@@ -141,7 +107,11 @@ export default {
 .error {
   color: rgb(201, 41, 41);
   text-align: center;
-  margin: 5px;
+  margin: 10px;
+}
+.error-title, .error-message {
+  font-size: 16px;
+  font-weight: 400;
 }
 .info {
   height: 100%;

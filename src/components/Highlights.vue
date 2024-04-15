@@ -1,5 +1,5 @@
 <template>
-    <div class="section highlights" v-if="weatherInfo?.weather">
+    <div class="section highlights">
         <div class="title">Today's Highlights</div>
         <div class="highlights-wrapper">
             <div class="highlight">
@@ -99,26 +99,6 @@
     </div>
 </template>
 
-<!-- <script>
-    export default {
-        props: {
-            weatherInfo: [ Object, null],
-        },
-        // data() {
-        //     return {
-        //         sunrise: computed(()=> this.weatherInfo.sys.sunrise),
-        //     }
-        // },
-        // computed: {
-        //     getTime(seconds) {
-        //         return new Date(seconds * 1000).toLocaleTimeString('ru-RU')
-        //     }
-        //     getTimeSunrise() {
-        //         return this.getTime(weatherInfo.sys.sunrise)
-        //     }
-        // }
-    }
-</script> -->
 <script setup>
 import { computed } from "vue";
 
